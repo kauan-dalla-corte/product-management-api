@@ -14,7 +14,8 @@ public final class ProductMonetaryMapper {
         return new MonetaryChangeResponse(productMonetaryChange.getId(),
                 productMonetaryChange.getMonetaryField(),
                 productMonetaryChange.getNewValue().getValue(),
-                productMonetaryChange.getOldValue().getValue());
+                productMonetaryChange.getOldValue().getValue(),
+                productMonetaryChange.getCreatedAt());
 
     }
 

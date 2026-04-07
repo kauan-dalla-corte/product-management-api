@@ -1,8 +1,7 @@
 spring:
   application:
-    name: product-management-service
-  profiles:
-    active: dev
+    name: product-management-api
+
   flyway:
     enabled: true
     locations: classpath:db/migration

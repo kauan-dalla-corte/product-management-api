@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,7 +24,12 @@ public class ProductMonetaryApiIntegrationTest extends IntegrationTestSupport {
     public void deveAlterarPrecoEPersistirHistoricoMonetario() throws
             Exception {
 
-        Product product = productRepository.save(ProductBuilder.aProduct().withPrice("15.98").withCost("12.29").build());
+        Product product = productRepository.save(
+                ProductBuilder.aProduct()
+                        .withPrice("15.98")
+                        .withCost("12.29")
+                        .build()
+        );
 
         String body = """
                 { "price": "18.79" }
@@ -48,14 +52,18 @@ public class ProductMonetaryApiIntegrationTest extends IntegrationTestSupport {
         assertEquals("18.79", productMonetaryChange.getNewValue().toString());
         assertEquals("15.98", productMonetaryChange.getOldValue().toString());
         assertEquals(ProductMonetaryField.PRICE, productMonetaryChange.getMonetaryField());
-
     }
 
     @Test
     public void deveAlterarCustoEPersistirHistoricoMonetario() throws
             Exception {
 
-        Product product = productRepository.save(ProductBuilder.aProduct().withPrice("15.98").withCost("12.29").build());
+        Product product = productRepository.save(
+                ProductBuilder.aProduct()
+                        .withPrice("15.98")
+                        .withCost("12.29")
+                        .build()
+        );
 
         String body = """
                 { "cost": "9.98" }
@@ -78,20 +86,37 @@ public class ProductMonetaryApiIntegrationTest extends IntegrationTestSupport {
         assertEquals("9.98", productMonetaryChange.getNewValue().toString());
         assertEquals("12.29", productMonetaryChange.getOldValue().toString());
         assertEquals(ProductMonetaryField.COST, productMonetaryChange.getMonetaryField());
-
     }
 
     @Test
-    public void deveRetornarHistoricoDePreco() throws
+    public void deveRetornarHistoricoDePrecoComCreatedAtOrdenado() throws
             Exception {
 
         Product product = ProductBuilder.aProduct().build();
         productRepository.save(product);
-        List<ProductMonetaryChange> monetaryChangeList =
-                List.of(ProductMonetaryChangeBuilder.aPriceChange().withProduct(product).withCreatedAt(Instant.now().minus(2, ChronoUnit.DAYS))
-                                .withNewValue(Money.of("19.90")).withId(null).build(),
-                        ProductMonetaryChangeBuilder.aPriceChange().withProduct(product).withNewValue(Money.of("17.99")).withId(null).build(),
-                        ProductMonetaryChangeBuilder.aCostChange().withProduct(product).withId(null).build());
+
+        Instant olderCreatedAt = Instant.parse("2026-04-05T10:15:30Z");
+        Instant newerCreatedAt = Instant.parse("2026-04-06T14:45:10Z");
+
+        List<ProductMonetaryChange> monetaryChangeList = List.of(
+                ProductMonetaryChangeBuilder.aPriceChange()
+                        .withProduct(product)
+                        .withCreatedAt(olderCreatedAt)
+                        .withNewValue(Money.of("19.90"))
+                        .withId(null)
+                        .build(),
+                ProductMonetaryChangeBuilder.aPriceChange()
+                        .withProduct(product)
+                        .withCreatedAt(newerCreatedAt)
+                        .withNewValue(Money.of("17.99"))
+                        .withId(null)
+                        .build(),
+                ProductMonetaryChangeBuilder.aCostChange()
+                        .withProduct(product)
+                        .withId(null)
+                        .build()
+        );
+
         productMonetaryChangeRepository.saveAll(monetaryChangeList);
 
         mockMvc.perform(get("/api/v1/products/{id}/monetary/price/history", product.getId()))
@@ -100,7 +125,9 @@ public class ProductMonetaryApiIntegrationTest extends IntegrationTestSupport {
                 .andExpect(dataArraySize(2))
                 .andExpect(dataArrayPath(0, "type", "PRICE"))
                 .andExpect(dataArrayPath(0, "newValue", 17.99))
+                .andExpect(dataArrayPath(0, "createdAt", "2026-04-06T14:45:10Z"))
                 .andExpect(dataArrayPath(1, "type", "PRICE"))
-                .andExpect(dataArrayPath(1, "newValue", 19.90));
+                .andExpect(dataArrayPath(1, "newValue", 19.90))
+                .andExpect(dataArrayPath(1, "createdAt", "2026-04-05T10:15:30Z"));
     }
 }
