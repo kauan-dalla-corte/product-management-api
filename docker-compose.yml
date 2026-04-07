@@ -1,0 +1,21 @@
+services:
+  db:
+    image: mysql:8.4
+    container_name: product-management-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: product_management
+    ports:
+      - "3306:3306"
+    volumes:
+      - product_management_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  product_management_data:
+    name: product_management_data

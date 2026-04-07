@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: product-management-service
+  profiles:
+    active: dev
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  jpa:
+    open-in-view: false
+
+server:
+  port: 8080
+
+springdoc:
+  swagger-ui:
+    path: /docs
